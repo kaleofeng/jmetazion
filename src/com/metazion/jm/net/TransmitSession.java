@@ -1,4 +1,4 @@
-package com.metazion.jgd.net;
+package com.metazion.jm.net;
 
 import io.netty.channel.Channel;
 

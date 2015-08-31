@@ -1,4 +1,4 @@
-package com.metazion.jgd.net;
+package com.metazion.jm.net;
 
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;

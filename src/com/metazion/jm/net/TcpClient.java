@@ -1,4 +1,4 @@
-package com.metazion.jgd.net;
+package com.metazion.jm.net;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
