@@ -1,5 +1,6 @@
 package com.metazion.jm.db;
 
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.sql.PreparedStatement;
@@ -12,10 +13,12 @@ import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
+import com.metazion.jm.util.FileUtil;
+
 public class Table<T> {
 
 	public class TableField {
-		public static final int TYPE_INT = 1;
+		public static final int TYPE_INTEGER = 1;
 		public static final int TYPE_STRING = 2;
 		public static final int TYPE_TIMESTAMP = 3;
 
@@ -30,16 +33,20 @@ public class Table<T> {
 	TableField primaryField = new TableField();
 	private ArrayList<TableField> tableFields = new ArrayList<TableField>();
 
+	private String selectAllSql = "";
 	private String selectSql = "";
 	private String insertSql = "";
 	private String updateSql = "";
 	private String deleteSql = "";
 
 	public void load(String path) throws Exception {
-		InputStream is = Table.class.getClassLoader().getResourceAsStream(path);
+		String absolutePath = FileUtil.getAbsolutePath(path);
+		InputStream is = new FileInputStream(absolutePath);
 
 		SAXReader saxReader = new SAXReader();
 		Document document = saxReader.read(is);
+
+		is.close();
 
 		Element root = document.getRootElement();
 
@@ -62,6 +69,7 @@ public class Table<T> {
 			tableFields.add(tableField);
 		}
 
+		selectAllSql = generateSelectAllSql();
 		selectSql = generateSelectSql();
 		insertSql = generateInsertSql();
 		updateSql = generateUpdateSql();
@@ -70,6 +78,10 @@ public class Table<T> {
 
 	public void setObject(T object) {
 		this.object = object;
+	}
+
+	public String getSelectAllSql() {
+		return selectAllSql;
 	}
 
 	public String getSelectSql() {
@@ -162,6 +174,20 @@ public class Table<T> {
 			value = ((Timestamp) value).getTime();
 		}
 		return value;
+	}
+
+	private String generateSelectAllSql() {
+		String sql = "SELECT " + primaryField.columnName;
+		int size = tableFields.size();
+		for (int index = 0; index < size; ++index) {
+			TableField tableField = tableFields.get(index);
+			String conjunction = ",";
+			String colSql = tableField.columnName;
+			sql = sql + conjunction + colSql;
+		}
+
+		sql = sql + " FROM " + tableName;
+		return sql;
 	}
 
 	private String generateSelectSql() {
