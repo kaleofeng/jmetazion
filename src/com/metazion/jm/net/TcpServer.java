@@ -22,6 +22,9 @@ import io.netty.util.AttributeKey;
 
 public class TcpServer {
 
+	private static final int BOSSTHREADNUMBER = 1;
+	private static final int WORKERTHREADNUMBER = Runtime.getRuntime().availableProcessors();
+
 	private final AttributeKey<ListenSession> LISTENSESSIONKEY = AttributeKey.valueOf("LISTENSESSIONKEY");
 	private final AttributeKey<ServerSession> SERVERSESSIONKEY = AttributeKey.valueOf("SERVERSESSIONKEY");
 
@@ -49,8 +52,8 @@ public class TcpServer {
 	}
 
 	private void start() {
-		bossGroup = new NioEventLoopGroup(1);
-		workerGroup = new NioEventLoopGroup(4);
+		bossGroup = new NioEventLoopGroup(BOSSTHREADNUMBER);
+		workerGroup = new NioEventLoopGroup(WORKERTHREADNUMBER);
 		bootstrap.group(bossGroup, workerGroup);
 		bootstrap.channel(NioServerSocketChannel.class);
 		bootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
@@ -95,8 +98,15 @@ public class TcpServer {
 	}
 
 	private void stop() {
-		bossGroup.shutdownGracefully();
-		workerGroup.shutdownGracefully();
+		if (bossGroup != null) {
+			bossGroup.shutdownGracefully();
+			bossGroup = null;
+		}
+
+		if (workerGroup != null) {
+			workerGroup.shutdownGracefully();
+			workerGroup = null;
+		}
 	}
 
 	private void tryListenAll() {
@@ -117,10 +127,8 @@ public class TcpServer {
 		f.addListener(new ChannelFutureListener() {
 			public void operationComplete(ChannelFuture f) throws Exception {
 				if (f.isSuccess()) {
-					System.out.println(String.format("Tcp server listen success: %s", listenSession.detail()));
 					f.channel().attr(LISTENSESSIONKEY).set(listenSession);
 				} else {
-					System.out.println(String.format("Tcp server listen failed: %s", listenSession.detail()));
 					f.channel().eventLoop().schedule(() -> tryListen(listenSession), interval, TimeUnit.SECONDS);
 				}
 			}

@@ -3,18 +3,18 @@ package com.metazion.jm.net;
 public abstract class ListenSession {
 
 	private boolean working = false;
-	
+
 	private int localPort = 0;
 	private int relistenInterval = 10;
-	
+
 	public void open() {
 		working = true;
 	}
-	
+
 	public void close() {
 		working = false;
 	}
-	
+
 	public boolean isWorking() {
 		return working;
 	}
@@ -42,6 +42,6 @@ public abstract class ListenSession {
 	public String detail() {
 		return String.format("working[%b] localPort[%d] relistenInterval[%d]", working, localPort, relistenInterval);
 	}
-	
+
 	public abstract ServerSession createServerSession();
 }

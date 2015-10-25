@@ -7,18 +7,6 @@ public abstract class TransmitSession {
 	protected Channel channel = null;
 	protected boolean working = false;
 
-	public void open() {
-		working = true;
-	}
-
-	public void close() {
-		working = false;
-	}
-
-	public boolean isActive() {
-		return channel != null && channel.isActive();
-	}
-
 	public Channel getChannel() {
 		return channel;
 	}
@@ -35,10 +23,32 @@ public abstract class TransmitSession {
 		this.working = isWoring;
 	}
 
+	public void open() {
+		working = true;
+	}
+
+	public void close() {
+		working = false;
+
+		if (isActive()) {
+			channel.close();
+		}
+	}
+
+	public void writeAndFlush(Object msg) {
+		if (isActive()) {
+			channel.writeAndFlush(msg);
+		}
+	}
+
+	public boolean isActive() {
+		return channel != null && channel.isActive();
+	}
+
 	public String detail() {
 		return String.format("working[%b]", working);
 	}
-	
+
 	public abstract void onActive() throws Exception;
 
 	public abstract void onInactive() throws Exception;
