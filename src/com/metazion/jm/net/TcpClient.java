@@ -23,6 +23,8 @@ import io.netty.util.AttributeKey;
 
 public class TcpClient {
 
+	private static final int WORKERTHREADNUMBER = Runtime.getRuntime().availableProcessors();
+
 	private final AttributeKey<ClientSession> SESSIONKEY = AttributeKey.valueOf("SESSIONKEY");
 
 	private final Bootstrap bootstrap = new Bootstrap();
@@ -48,7 +50,7 @@ public class TcpClient {
 	}
 
 	private void start() {
-		workerGroup = new NioEventLoopGroup();
+		workerGroup = new NioEventLoopGroup(WORKERTHREADNUMBER);
 		bootstrap.group(workerGroup);
 		bootstrap.channel(NioSocketChannel.class);
 		bootstrap.handler(new ChannelInitializer<SocketChannel>() {
@@ -93,7 +95,10 @@ public class TcpClient {
 	}
 
 	private void stop() {
-		workerGroup.shutdownGracefully();
+		if (workerGroup != null) {
+			workerGroup.shutdownGracefully();
+			workerGroup = null;
+		}
 	}
 
 	private void tryConnectAll() {
@@ -115,10 +120,8 @@ public class TcpClient {
 		future.addListener(new ChannelFutureListener() {
 			public void operationComplete(ChannelFuture f) throws Exception {
 				if (f.isSuccess()) {
-					System.out.println(String.format("Tcp client connect success: %s", clientSession.detail()));
 					f.channel().attr(SESSIONKEY).set(clientSession);
 				} else {
-					System.out.println(String.format("Tcp client connect failed: %s", clientSession.detail()));
 					f.channel().eventLoop().schedule(() -> tryConnect(clientSession), interval, TimeUnit.SECONDS);
 				}
 			}
