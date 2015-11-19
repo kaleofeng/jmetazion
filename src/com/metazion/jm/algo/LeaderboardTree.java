@@ -1,13 +1,13 @@
-package com.metazion.jm.collection;
+package com.metazion.jm.algo;
 
 import java.util.ArrayList;
 
 public class LeaderboardTree<Extra extends LeaderboardExtra> {
 
 	class LeaderboardNode {
-		public int lowerScore = 0;
-		public int upperScore = 0;
-		public int count = 0;
+		public int lowerKey = 0;
+		public int upperKey = 0;
+		public int number = 0;
 
 		public ArrayList<Extra> extraList = new ArrayList<Extra>();
 
@@ -23,8 +23,8 @@ public class LeaderboardTree<Extra extends LeaderboardExtra> {
 	LeaderboardNode head = null;
 	LeaderboardNode tail = null;
 
-	public void setup(int lowerScore, int upperScore) {
-		root = setupNode(root, lowerScore, upperScore);
+	public void setup(int lowerKey, int upperKey) {
+		root = setupNode(root, lowerKey, upperKey);
 	}
 
 	public void insert(int score, Extra extra) {
@@ -35,41 +35,45 @@ public class LeaderboardTree<Extra extends LeaderboardExtra> {
 		removeFromNode(root, score, extra);
 	}
 
-	public void change(int oldScore, int newScore, Extra extra) {
-		remove(oldScore, extra);
-		insert(newScore, extra);
+	public void change(int oldKey, int newKey, Extra extra) {
+		remove(oldKey, extra);
+		insert(newKey, extra);
 	}
 
 	public int getRanking(int score, Extra extra) {
-		return getRankingOfNode(root, score, extra);
+		return getRankingOfNode(root, score, extra) + 1;
 	}
 
-	public ArrayList<Extra> getTopN(int n) {
-		ArrayList<Extra> extraList = new ArrayList<Extra>();
+	public ArrayList<LeaderboardData> getTopN(int n) {
+		ArrayList<LeaderboardData> dataList = new ArrayList<LeaderboardData>();
 
 		int count = 0;
 		LeaderboardNode cursor = tail;
 		while (cursor != null) {
 			for (Extra extra : cursor.extraList) {
-				extraList.add(extra);
-				if (++count >= n) {
-					return extraList;
+				LeaderboardData data = new LeaderboardData();
+				data.ranking = ++count;
+				data.key = cursor.lowerKey;
+				data.extra = extra;
+				dataList.add(data);
+				if (count >= n) {
+					return dataList;
 				}
 			}
 			cursor = cursor.prev;
 		}
-		return extraList;
+		return dataList;
 	}
 
-	private LeaderboardNode setupNode(LeaderboardNode node, int lowerScore, int upperScore) {
-		if (lowerScore > upperScore) {
+	private LeaderboardNode setupNode(LeaderboardNode node, int lowerKey, int upperKey) {
+		if (lowerKey > upperKey) {
 			return null;
 		}
 
 		node = new LeaderboardNode();
-		node.lowerScore = lowerScore;
-		node.upperScore = upperScore;
-		node.count = 0;
+		node.lowerKey = lowerKey;
+		node.upperKey = upperKey;
+		node.number = 0;
 		node.extraList.clear();
 
 		if (isLeafNode(node)) {
@@ -86,10 +90,10 @@ public class LeaderboardTree<Extra extends LeaderboardExtra> {
 			return node;
 		}
 
-		if (upperScore > lowerScore) {
-			final int middleScore = getMiddleScore(lowerScore, upperScore);
-			node.left = setupNode(node.left, lowerScore, middleScore);
-			node.right = setupNode(node.right, middleScore + 1, upperScore);
+		if (upperKey > lowerKey) {
+			final int middleKey = getMiddleKey(lowerKey, upperKey);
+			node.left = setupNode(node.left, lowerKey, middleKey);
+			node.right = setupNode(node.right, middleKey + 1, upperKey);
 		}
 
 		return node;
@@ -104,7 +108,7 @@ public class LeaderboardTree<Extra extends LeaderboardExtra> {
 			return;
 		}
 
-		++node.count;
+		++node.number;
 
 		if (isLeafNode(node)) {
 			node.extraList.add(extra);
@@ -112,8 +116,8 @@ public class LeaderboardTree<Extra extends LeaderboardExtra> {
 			return;
 		}
 
-		final int middleScore = getMiddleScore(node.lowerScore, node.upperScore);
-		if (score <= middleScore) {
+		final int middleKey = getMiddleKey(node.lowerKey, node.upperKey);
+		if (score <= middleKey) {
 			insertIntoNode(node.left, score, extra);
 		} else {
 			insertIntoNode(node.right, score, extra);
@@ -129,7 +133,7 @@ public class LeaderboardTree<Extra extends LeaderboardExtra> {
 			return;
 		}
 
-		--node.count;
+		--node.number;
 
 		if (isLeafNode(node)) {
 			node.extraList.remove(extra);
@@ -137,8 +141,8 @@ public class LeaderboardTree<Extra extends LeaderboardExtra> {
 			return;
 		}
 
-		final int middleScore = getMiddleScore(node.lowerScore, node.upperScore);
-		if (score <= middleScore) {
+		final int middleKey = getMiddleKey(node.lowerKey, node.upperKey);
+		if (score <= middleKey) {
 			removeFromNode(node.left, score, extra);
 		} else {
 			removeFromNode(node.right, score, extra);
@@ -152,12 +156,12 @@ public class LeaderboardTree<Extra extends LeaderboardExtra> {
 			return ranking;
 		}
 
-		if (score < node.lowerScore) {
-			ranking += node.count;
+		if (score < node.lowerKey) {
+			ranking += node.number;
 			return ranking;
 		}
 
-		if (score > node.upperScore) {
+		if (score > node.upperKey) {
 			ranking += 0;
 			return ranking;
 		}
@@ -167,9 +171,9 @@ public class LeaderboardTree<Extra extends LeaderboardExtra> {
 			return ranking;
 		}
 
-		final int middleScore = getMiddleScore(node.lowerScore, node.upperScore);
-		if (score <= middleScore) {
-			ranking += node.right != null ? node.right.count : 0;
+		final int middleKey = getMiddleKey(node.lowerKey, node.upperKey);
+		if (score <= middleKey) {
+			ranking += node.right != null ? node.right.number : 0;
 			ranking += getRankingOfNode(node.left, score, extra);
 		} else {
 			ranking += getRankingOfNode(node.right, score, extra);
@@ -178,16 +182,16 @@ public class LeaderboardTree<Extra extends LeaderboardExtra> {
 		return ranking;
 	}
 
-	private int getMiddleScore(int lowerScore, int upperScore) {
-		final int middleScore = lowerScore + ((upperScore - lowerScore) >> 1);
-		return middleScore;
+	private int getMiddleKey(int lowerKey, int upperKey) {
+		final int middleKey = lowerKey + ((upperKey - lowerKey) >> 1);
+		return middleKey;
 	}
 
 	private boolean isInsideNode(LeaderboardNode node, int score) {
-		return score >= node.lowerScore && score <= node.upperScore;
+		return score >= node.lowerKey && score <= node.upperKey;
 	}
 
 	private boolean isLeafNode(LeaderboardNode node) {
-		return node.lowerScore == node.upperScore;
+		return node.lowerKey == node.upperKey;
 	}
 }
