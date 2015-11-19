@@ -32,7 +32,6 @@ public abstract class ClientSession extends TransmitSession {
 
 	@Override
 	public String detail() {
-		return String.format("%s remoteHost[%s] remotePort[%d] reconnectInterval[%d]", super.detail(), remoteHost,
-				remotePort, reconnectInterval);
+		return String.format("%s remoteHost[%s] remotePort[%d] reconnectInterval[%d]", super.detail(), remoteHost, remotePort, reconnectInterval);
 	}
 }
