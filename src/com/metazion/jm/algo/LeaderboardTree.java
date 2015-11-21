@@ -27,12 +27,12 @@ public class LeaderboardTree<Extra extends LeaderboardExtra> {
 		root = setupNode(root, lowerKey, upperKey);
 	}
 
-	public void insert(int score, Extra extra) {
-		insertIntoNode(root, score, extra);
+	public void insert(int key, Extra extra) {
+		insertIntoNode(root, key, extra);
 	}
 
-	public void remove(int score, Extra extra) {
-		removeFromNode(root, score, extra);
+	public void remove(int key, Extra extra) {
+		removeFromNode(root, key, extra);
 	}
 
 	public void change(int oldKey, int newKey, Extra extra) {
@@ -40,8 +40,8 @@ public class LeaderboardTree<Extra extends LeaderboardExtra> {
 		insert(newKey, extra);
 	}
 
-	public int getRanking(int score, Extra extra) {
-		return getRankingOfNode(root, score, extra) + 1;
+	public int getRanking(int key, Extra extra) {
+		return getRankingOfNode(root, key, extra) + 1;
 	}
 
 	public ArrayList<LeaderboardData> getTopN(int n) {
@@ -99,12 +99,12 @@ public class LeaderboardTree<Extra extends LeaderboardExtra> {
 		return node;
 	}
 
-	private void insertIntoNode(LeaderboardNode node, int score, Extra extra) {
+	private void insertIntoNode(LeaderboardNode node, int key, Extra extra) {
 		if (node == null) {
 			return;
 		}
 
-		if (!isInsideNode(node, score)) {
+		if (!isInsideNode(node, key)) {
 			return;
 		}
 
@@ -117,19 +117,19 @@ public class LeaderboardTree<Extra extends LeaderboardExtra> {
 		}
 
 		final int middleKey = getMiddleKey(node.lowerKey, node.upperKey);
-		if (score <= middleKey) {
-			insertIntoNode(node.left, score, extra);
+		if (key <= middleKey) {
+			insertIntoNode(node.left, key, extra);
 		} else {
-			insertIntoNode(node.right, score, extra);
+			insertIntoNode(node.right, key, extra);
 		}
 	}
 
-	private void removeFromNode(LeaderboardNode node, int score, Extra extra) {
+	private void removeFromNode(LeaderboardNode node, int key, Extra extra) {
 		if (node == null) {
 			return;
 		}
 
-		if (!isInsideNode(node, score)) {
+		if (!isInsideNode(node, key)) {
 			return;
 		}
 
@@ -142,26 +142,26 @@ public class LeaderboardTree<Extra extends LeaderboardExtra> {
 		}
 
 		final int middleKey = getMiddleKey(node.lowerKey, node.upperKey);
-		if (score <= middleKey) {
-			removeFromNode(node.left, score, extra);
+		if (key <= middleKey) {
+			removeFromNode(node.left, key, extra);
 		} else {
-			removeFromNode(node.right, score, extra);
+			removeFromNode(node.right, key, extra);
 		}
 	}
 
-	private int getRankingOfNode(LeaderboardNode node, int score, Extra extra) {
+	private int getRankingOfNode(LeaderboardNode node, int key, Extra extra) {
 		int ranking = 0;
 
 		if (node == null) {
 			return ranking;
 		}
 
-		if (score < node.lowerKey) {
+		if (key < node.lowerKey) {
 			ranking += node.number;
 			return ranking;
 		}
 
-		if (score > node.upperKey) {
+		if (key > node.upperKey) {
 			ranking += 0;
 			return ranking;
 		}
@@ -172,11 +172,11 @@ public class LeaderboardTree<Extra extends LeaderboardExtra> {
 		}
 
 		final int middleKey = getMiddleKey(node.lowerKey, node.upperKey);
-		if (score <= middleKey) {
+		if (key <= middleKey) {
 			ranking += node.right != null ? node.right.number : 0;
-			ranking += getRankingOfNode(node.left, score, extra);
+			ranking += getRankingOfNode(node.left, key, extra);
 		} else {
-			ranking += getRankingOfNode(node.right, score, extra);
+			ranking += getRankingOfNode(node.right, key, extra);
 		}
 
 		return ranking;
@@ -187,8 +187,8 @@ public class LeaderboardTree<Extra extends LeaderboardExtra> {
 		return middleKey;
 	}
 
-	private boolean isInsideNode(LeaderboardNode node, int score) {
-		return score >= node.lowerKey && score <= node.upperKey;
+	private boolean isInsideNode(LeaderboardNode node, int key) {
+		return key >= node.lowerKey && key <= node.upperKey;
 	}
 
 	private boolean isLeafNode(LeaderboardNode node) {
