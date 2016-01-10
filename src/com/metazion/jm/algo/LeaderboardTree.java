@@ -2,7 +2,7 @@ package com.metazion.jm.algo;
 
 import java.util.ArrayList;
 
-public class LeaderboardTree<Extra extends LeaderboardExtra> {
+public class LeaderboardTree<Extra extends LeaderboardTreeExtra> {
 
 	class LeaderboardNode {
 		public int lowerKey = 0;
@@ -44,14 +44,17 @@ public class LeaderboardTree<Extra extends LeaderboardExtra> {
 		return getRankingOfNode(root, key, extra) + 1;
 	}
 
-	public ArrayList<LeaderboardData> getTopN(int n) {
-		ArrayList<LeaderboardData> dataList = new ArrayList<LeaderboardData>();
+	public LeaderboardTreeData getRankingN(int n) {
+		return getRankingNOfNode(root, n, n);
+	}
 
+	public ArrayList<LeaderboardTreeData> getTopN(int n) {
+		ArrayList<LeaderboardTreeData> dataList = new ArrayList<LeaderboardTreeData>();
 		int count = 0;
 		LeaderboardNode cursor = tail;
 		while (cursor != null) {
 			for (Extra extra : cursor.extraList) {
-				LeaderboardData data = new LeaderboardData();
+				LeaderboardTreeData data = new LeaderboardTreeData();
 				data.ranking = ++count;
 				data.key = cursor.lowerKey;
 				data.extra = extra;
@@ -180,6 +183,38 @@ public class LeaderboardTree<Extra extends LeaderboardExtra> {
 		}
 
 		return ranking;
+	}
+
+	private LeaderboardTreeData getRankingNOfNode(LeaderboardNode node, int n, int ranking) {
+		if (node == null) {
+			return null;
+		}
+
+		if (ranking > node.number) {
+			return null;
+		}
+
+		if (isLeafNode(node)) {
+			LeaderboardTreeData data = null;
+			for (Extra extra : node.extraList) {
+				ranking -= 1;
+				if (ranking <= 0) {
+					data = new LeaderboardTreeData();
+					data.key = node.lowerKey;
+					data.ranking = n;
+					data.extra = extra;
+					break;
+				}
+			}
+			return data;
+		}
+
+		if (node.right != null && ranking > node.right.number) {
+			ranking -= node.right.number;
+			return getRankingNOfNode(node.left, n, ranking);
+		} else {
+			return getRankingNOfNode(node.right, n, ranking);
+		}
 	}
 
 	private int getMiddleKey(int lowerKey, int upperKey) {
