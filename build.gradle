@@ -1,0 +1,18 @@
+plugins {
+    id 'java'
+}
+
+group 'com.metazion.jm'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation group: 'io.netty', name: 'netty-all', version: '4.1.32.Final'
+    implementation group: 'org.dom4j', name: 'dom4j', version: '2.1.1'
+    testImplementation group: 'junit', name: 'junit', version: '4.12'
+}

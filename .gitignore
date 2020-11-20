@@ -1,1 +1,4 @@
-bin/
+.gradle/
+.idea/
+out/
+classes/
